@@ -1,4 +1,4 @@
-module truora/api
+module indexer/api
 
 go 1.20
 
