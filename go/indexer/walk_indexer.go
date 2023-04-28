@@ -18,7 +18,9 @@ func check(e error){
 }
 
 func main () {
+    // Receive the path of the directory to be traversed.
     args := os.Args
+    // Profilling
     f, err := os.Create("profile.pb.gz")
     if err != nil {
         log.Fatal(err)
@@ -28,15 +30,15 @@ func main () {
              log.Fatal(err)
     }
     defer pprof.StopCPUProfile()
-    walk(args[1]) 
+
+    TraverseDirectory(args[1]) 
 }
 
-func walk (path string) {
+func TraverseDirectory (path string) {
     // It creates the file where the emails will be stored as json
     emails, err := os.Create("emails.ndjson")
     check(err)
     writer := bufio.NewWriter(emails) 
-
 
     filepath.Walk(path, func(path string, info os.FileInfo, err error) error { 
     check(err)
@@ -49,7 +51,7 @@ func walk (path string) {
         } 
         scanner := bufio.NewScanner(file)
   
-        // Following the standard format that I detected in the olympics.ndjson in the zinc example, I write the filepath
+        // Following the standard format that I detected in the olympics.ndjson in the ZincSearch example, I write the filepath
         // so every email is preceded by a default index
         jsonIndex := `{ "index" : { "_index" : "emails" } }`+ "\n"
         _, err = writer.WriteString(string(jsonIndex))  
@@ -58,6 +60,8 @@ func walk (path string) {
 
         // This variable is declared to store the message inside the emails, the content itself
         var content string  
+        // info is used to store the information of the first 15 lines containing information 
+        // about the email
         var info string
         counter := 0
 
@@ -79,14 +83,20 @@ func walk (path string) {
                 content += "\n" + line
             }
         } 
+        // This Marshal is needed to convert some of the characters in the email
+        // into a valid json character
         jsonMessage, err := json.Marshal(content)
-        hola := string(jsonMessage) 
+        formattedJson := string(jsonMessage) 
 
-        rawMessage := string(fmt.Sprintf(`"%s": %s`, "Message",hola)) 
-        final := info + rawMessage 
-        sisi  := fmt.Sprintf(`{%s}`, final)
+        // Define formatted string with a placeholder for the Message and another for the
+        // content of the email 
+        rawMessage := string(fmt.Sprintf(`"%s": %s`, "Message",formattedJson)) 
+        
+        infoMessage := info + rawMessage 
+        // Wrap the result into a {} to make the entire email
+        jsonEmail  := fmt.Sprintf(`{%s}`, infoMessage)
         check(err)
-        data := string(sisi)  
+        data := string(jsonEmail)  
         _, err = writer.WriteString(data + "\n")
         writer.Flush()
     }    

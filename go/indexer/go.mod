@@ -1,3 +1,3 @@
-module email_indexer/walk
+module indexer/walk
 
 go 1.20

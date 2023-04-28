@@ -1,3 +1,3 @@
-module recursive/walkdir_prof
+module indexer/walkdir
 
 go 1.20
